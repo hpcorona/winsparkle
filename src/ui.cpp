@@ -177,7 +177,7 @@ protected:
 
 
 WinSparkleDialog::WinSparkleDialog()
-    : wxDialog(NULL, wxID_ANY, _("Software Update"),
+    : wxDialog(NULL, wxID_ANY, _("Actualización de Software"),
                wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
@@ -351,7 +351,7 @@ UpdateDialog::UpdateDialog()
 
     m_releaseNotesSizer = new wxBoxSizer(wxVERTICAL);
 
-    wxStaticText *notesLabel = new wxStaticText(this, wxID_ANY, _("Release notes:"));
+    wxStaticText *notesLabel = new wxStaticText(this, wxID_ANY, _("Notas de liberación:"));
     SetBoldFont(notesLabel);
     m_releaseNotesSizer->Add(notesLabel, wxSizerFlags().Border(wxTOP, 10));
 
@@ -377,20 +377,21 @@ UpdateDialog::UpdateDialog()
     m_updateButtonsSizer = new wxBoxSizer(wxHORIZONTAL);
     m_updateButtonsSizer->Add
                           (
-                            new wxButton(this, ID_SKIP_VERSION, _("Skip this version")),
+                            new wxButton(this, ID_SKIP_VERSION, _("Ignorar versión")),
                             wxSizerFlags().Border(wxRIGHT, 20)
                           );
     m_updateButtonsSizer->AddStretchSpacer(1);
     m_updateButtonsSizer->Add
                           (
-                            new wxButton(this, ID_REMIND_LATER, _("Remind me later")),
+                            new wxButton(this, ID_REMIND_LATER, _("Más tarde...")),
                             wxSizerFlags().Border(wxRIGHT, 10)
                           );
     m_updateButtonsSizer->Add
                           (
-                            m_installButton = new wxButton(this, ID_INSTALL, _("Install update")),
+                            m_installButton = new wxButton(this, ID_INSTALL, _("Instalar ahora")),
                             wxSizerFlags()
                           );
+	m_installButton->SetDefault();
     m_buttonSizer->Add(m_updateButtonsSizer, wxSizerFlags(1));
 
     m_closeButtonSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -401,7 +402,7 @@ UpdateDialog::UpdateDialog()
 
     m_runInstallerButtonSizer = new wxBoxSizer(wxHORIZONTAL);
     // TODO: make this "Install and relaunch"
-    m_runInstallerButton = new wxButton(this, ID_RUN_INSTALLER, _("Install update"));
+    m_runInstallerButton = new wxButton(this, ID_RUN_INSTALLER, _("Instalar ahora"));
     m_runInstallerButtonSizer->AddStretchSpacer(1);
     m_runInstallerButtonSizer->Add(m_runInstallerButton, wxSizerFlags(0).Border(wxLEFT));
     m_buttonSizer->Add(m_runInstallerButtonSizer, wxSizerFlags(1));
@@ -464,7 +465,8 @@ void UpdateDialog::OnClose(wxCloseEvent&)
 
 void UpdateDialog::OnSkipVersion(wxCommandEvent&)
 {
-    Settings::WriteConfigValue("SkipThisVersion", m_appcast.Version);
+    //Settings::WriteConfigValue("SkipThisVersion", m_appcast.Version);
+	//nunca hacer skip
     Close();
 }
 
@@ -491,22 +493,22 @@ void UpdateDialog::OnRunInstaller(wxCommandEvent&)
     if( !ApplicationController::IsReadyToShutdown() )
     {
         wxMessageDialog dlg(this,
-                            wxString::Format(_("%s cannot be restarted."), Settings::GetAppName()),
-                            _("Software Update"),
+                            wxString::Format(_("%s no pudo ser reiniciada."), Settings::GetAppName()),
+                            _("Actualización de Software"),
                             wxOK | wxOK_DEFAULT | wxICON_EXCLAMATION);
-        dlg.SetExtendedMessage(_("Make sure that you don't have any unsaved documents and try again."));
+        dlg.SetExtendedMessage(_("Asegurate de que no tengas documentos pendientes de guardar y reintenta."));
         dlg.ShowModal();
         return;
     }
 
     wxBusyCursor bcur;
 
-    m_message->SetLabel(_("Launching the installer..."));
+    m_message->SetLabel(_("Lanzando el instalador..."));
     m_runInstallerButton->Disable();
 
     if ( !wxLaunchDefaultApplication(m_updateFile) )
     {
-        wxLogError(_("Failed to launch the installer."));
+        wxLogError(_("No se pudo lanzar el instalador."));
         wxLog::FlushActive();
     }
     else
@@ -528,9 +530,9 @@ void UpdateDialog::StateCheckingUpdates()
 {
     LayoutChangesGuard guard(this);
 
-    SetMessage(_("Checking for updates..."));
+    SetMessage(_("Buscando actualizaciones..."));
 
-    m_closeButton->SetLabel(_("Cancel"));
+    m_closeButton->SetLabel(_("Cancelar"));
     EnablePulsing(true);
 
     HIDE(m_heading);
@@ -548,14 +550,14 @@ void UpdateDialog::StateNoUpdateFound()
 {
     LayoutChangesGuard guard(this);
 
-    m_heading->SetLabel(_("You're up to date!"));
+    m_heading->SetLabel(_("Cuentas con la última versión!"));
 
     wxString msg;
     try
     {
         msg = wxString::Format
               (
-                  _("%s %s is currently the newest version available."),
+                  _("%s %s es actualmente la versión mas nueva disponible."),
                   Settings::GetAppName(),
                   Settings::GetAppVersion()
               );
@@ -563,12 +565,12 @@ void UpdateDialog::StateNoUpdateFound()
     catch ( std::exception& )
     {
         // GetAppVersion() may fail
-        msg = "Error: Updates checking not properly configured.";
+        msg = "Error: La revisión de actualizaciones no esta configurada.";
     }
 
     SetMessage(msg);
 
-    m_closeButton->SetLabel(_("Close"));
+    m_closeButton->SetLabel(_("Cerrar"));
     m_closeButton->SetDefault();
     EnablePulsing(false);
 
@@ -587,12 +589,12 @@ void UpdateDialog::StateUpdateError()
 {
     LayoutChangesGuard guard(this);
 
-    m_heading->SetLabel(_("Update Error!"));
+    m_heading->SetLabel(_("Error en la Actualización!"));
 
-    wxString msg = _("An error occurred in retrieving update information; are you connected to the internet? Please try again later.");
+	wxString msg = _("Ocurrió un error al obtener la información de la actualización; te encuentras conectado a internet? Intenta mas tarde.");
     SetMessage(msg);
 
-    m_closeButton->SetLabel(_("Cancel"));
+    m_closeButton->SetLabel(_("Cancelar"));
     m_closeButton->SetDefault();
     EnablePulsing(false);
 
@@ -630,13 +632,13 @@ void UpdateDialog::StateUpdateAvailable(const Appcast& info)
         }
 
         m_heading->SetLabel(
-            wxString::Format(_("A new version of %s is available!"), appname));
+            wxString::Format(_("Hay una nueva versión de %s disponible!"), appname));
 
         SetMessage
         (
             wxString::Format
             (
-                _("%s %s is now available (you have %s). Would you like to download it now?"),
+                _("%s %s se encuentra disponible (tu tienes %s). Deseas descargarla ahora?"),
                 appname, ver_new, ver_my
             ),
             showRelnotes ? RELNOTES_WIDTH : MESSAGE_AREA_WIDTH
@@ -667,9 +669,9 @@ void UpdateDialog::StateDownloading()
 {
     LayoutChangesGuard guard(this);
 
-    SetMessage(_("Downloading update..."));
+    SetMessage(_("Descargando actualización..."));
 
-    m_closeButton->SetLabel(_("Cancel"));
+    m_closeButton->SetLabel(_("Cancelar"));
     EnablePulsing(false);
 
     HIDE(m_heading);
@@ -694,7 +696,7 @@ void UpdateDialog::DownloadProgress(size_t downloaded, size_t total)
         m_progress->SetValue(downloaded);
         label = wxString::Format
                 (
-                    _("%s of %s"),
+                    _("%s de %s"),
                     wxFileName::GetHumanReadableSize(downloaded, "", 1, wxSIZE_CONV_SI),
                     wxFileName::GetHumanReadableSize(total, "", 1, wxSIZE_CONV_SI)
                 );
@@ -723,7 +725,7 @@ void UpdateDialog::StateUpdateDownloaded(const std::string& updateFile)
 
     LayoutChangesGuard guard(this);
 
-    SetMessage(_("Ready to install."));
+    SetMessage(_("Listo para instalar."));
 
     m_progress->SetRange(1);
     m_progress->SetValue(1);
@@ -765,7 +767,7 @@ void UpdateDialog::ShowReleaseNotes(const Appcast& info)
             LayoutChangesGuard guard(this);
             HIDE(m_releaseNotesSizer);
             MakeResizable(false);
-            LogError("Failed to create WebBrowser ActiveX control.");
+            LogError("No se pudo crear navegador con control ActiveX.");
             return;
         }
 
@@ -801,7 +803,7 @@ void UpdateDialog::ShowReleaseNotes(const Appcast& info)
         hr = m_webBrowser->get_Document((IDispatch **)&doc);
         if ( FAILED(hr) || !doc )
         {
-            LogError("Failed to get HTML document");
+            LogError("No se pudo obtener el documento HTML");
             return;
         }
 
@@ -841,7 +843,7 @@ AskPermissionDialog::AskPermissionDialog()
 {
     wxStaticText *heading =
             new wxStaticText(this, wxID_ANY,
-                             _("Check for updates automatically?"));
+                             _("Revisar actualizaciones automaticamente?"));
     SetHeadingFont(heading);
     m_mainAreaSizer->Add(heading, wxSizerFlags(0).Expand().Border(wxBOTTOM, 10));
 
@@ -851,7 +853,7 @@ AskPermissionDialog::AskPermissionDialog()
                     this, wxID_ANY,
                     wxString::Format
                     (
-                        _("Should %s automatically check for updates? You can always check for updates manually from the menu."),
+                        _("Desea que %s busque nuevas versiones automaticamente?"),
                         Settings::GetAppName()
                     ),
                     wxDefaultPosition, wxSize(MESSAGE_AREA_WIDTH, -1)
@@ -865,12 +867,12 @@ AskPermissionDialog::AskPermissionDialog()
 
     buttonSizer->Add
                  (
-                     new wxButton(this, wxID_OK, _("Check automatically")),
+                     new wxButton(this, wxID_OK, _("Revisar automaticamente")),
                      wxSizerFlags().Border(wxRIGHT)
                  );
     buttonSizer->Add
                  (
-                     new wxButton(this, wxID_CANCEL, _("Don't check"))
+                     new wxButton(this, wxID_CANCEL, _("No revisar"))
                  );
 
     m_mainAreaSizer->Add
@@ -1258,3 +1260,13 @@ void UI::AskForPermission()
 }
 
 } // namespace winsparkle
+
+//void ShowMessage(const char* message)
+//{
+//	wchar_t *szbuf;
+//	int len = strlen(message);
+//	szbuf = new wchar_t[len * 2 + 2];
+//	MultiByteToWideChar(0, 0, message, len, szbuf, len * 2);
+//	MessageBox(NULL, (LPCWSTR)szbuf, L"WinSparkle", 0x00000000L);
+//	delete szbuf;
+//}

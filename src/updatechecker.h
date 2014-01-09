@@ -47,18 +47,6 @@ public:
     /// Creates checker thread.
     UpdateChecker();
 
-    /**
-        Compares versions @a a and @a b.
-
-        The comparison is somewhat intelligent, it handles beta and RC
-        components correctly.
-
-        @return 0 if the versions are identical, negative value if
-                @a a is smaller than @a b, positive value if @a a
-                is larger than @a b.
-     */
-    static int CompareVersions(const std::string& a, const std::string& b);
-
 protected:
     /// Returns flags to be used when checking the appcast
     virtual int GetAppcastDownloadFlags() const { return 0; }

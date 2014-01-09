@@ -304,6 +304,8 @@ WIN_SPARKLE_API void __cdecl win_sparkle_check_update_with_ui();
 */
 WIN_SPARKLE_API void __cdecl win_sparkle_check_update_without_ui();
 
+//void ShowMessage(const char* message);
+
 //@}
 
 #ifdef __cplusplus

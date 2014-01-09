@@ -32,6 +32,18 @@ namespace winsparkle
 {
 
 /**
+Compares versions @a a and @a b.
+
+The comparison is somewhat intelligent, it handles beta and RC
+components correctly.
+
+@return 0 if the versions are identical, negative value if
+@a a is smaller than @a b, positive value if @a a
+is larger than @a b.
+*/
+int CompareVersions(const std::string& a, const std::string& b);
+
+/**
     This class contains information from the appcast.
  */
 struct Appcast
